@@ -9,6 +9,7 @@ Now, this is done using binary files.
 import rospkg
 import os
 import json
+import csv
 from rospy_message_converter import message_converter
 
 from visualization_msgs.msg import MarkerArray
@@ -53,9 +54,11 @@ def write_global_waypoints(map_name:str,
     # Get path of stack_master package to get the map waypoint path
     r = rospkg.RosPack()
     if not map_editor_bool:
-        path = os.path.join(r.get_path('stack_master'), 'maps', map_name, 'global_waypoints.json')
+        base_path = os.path.join(r.get_path('stack_master'), 'maps', map_name)
     else:
-        path = os.path.join(r.get_path('map_editor'), 'maps', map_name, 'global_waypoints.json')
+        base_path = os.path.join(r.get_path('map_editor'), 'maps', map_name)
+    os.makedirs(base_path, exist_ok=True)
+    path = os.path.join(base_path, 'global_waypoints.json')
     print(f"[INFO] WRITE_GLOBAL_WAYPOINTS: Writing global waypoints to {path}")
 
     # Dictionary will be converted into a JSON for serialization
@@ -73,7 +76,31 @@ def write_global_waypoints(map_name:str,
     # serialize
     with open(path, 'w') as f:
         json.dump(d, f)
+    # Save to CSV
+    csv_path = os.path.join(base_path, 'global_waypoints.csv')
+    with open(csv_path, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['opt_x', 'opt_y', 'outer_width', 'inner_width', 'center_x', 'center_y',
+                             'outer_x', 'outer_y', 'inner_x', 'inner_y', 'curvature', 'ref_v'])
 
+        # Write data from global_traj_wpnts_iqp
+        for wp in global_traj_wpnts_iqp.wpnts:
+            opt_x = wp.x_m
+            opt_y = wp.y_m
+            outer_width = wp.d_right
+            inner_width = wp.d_left
+            center_x = (wp.x_m + wp.d_left - wp.d_right) / 2  # Center x approximation
+            center_y = (wp.y_m + wp.d_left - wp.d_right) / 2  # Center y approximation
+            outer_x = wp.x_m + wp.d_right
+            outer_y = wp.y_m + wp.d_right
+            inner_x = wp.x_m - wp.d_left
+            inner_y = wp.y_m - wp.d_left
+            curvature = getattr(wp, 'kappa_radpm', None)  # Safely access curvature
+            ref_v = getattr(wp, 'vx_mps', None)  # Safely access reference velocity
+
+            csv_writer.writerow([opt_x, opt_y, outer_width, inner_width, center_x, center_y,
+                                 outer_x, outer_y, inner_x, inner_y, curvature, ref_v])
+            
 def read_global_waypoints(map_name:str)->Tuple[
     String, Float32, MarkerArray, WpntArray, MarkerArray, WpntArray, MarkerArray, WpntArray, MarkerArray
 ]:
