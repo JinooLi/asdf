@@ -11,7 +11,7 @@ from helpers.save_model import save
 
 g_ = 9.81
 
-model_name_ = "NUC1_pacejka" #name + tire model name
+model_name_ = "NUC3_pacejka" #name + tire model name
 model, tires = model_name_.split("_")
 local_bag_dir = './data/' + model + "/motor" # path to folder with rosbag(s) with relevant experiment data
 
