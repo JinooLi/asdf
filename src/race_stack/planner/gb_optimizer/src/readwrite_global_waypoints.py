@@ -102,12 +102,11 @@ def write_global_waypoints(map_name:str,
             csv_writer.writerow([opt_x, opt_y, outer_width, inner_width, center_x, center_y,
                                  outer_x, outer_y, inner_x, inner_y, curvature, ref_v])
 
-    # Save simplified CSV for MPPI with x, y, velocity
+    # Save simplified CSV for MPPI with x, y, velocity (no header row)
     simplified_csv_path = os.path.join('/home/turtleship/turtleship_ws/outputs', f'{map_name}.csv')
     os.makedirs(os.path.dirname(simplified_csv_path), exist_ok=True)
     with open(simplified_csv_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
-        csv_writer.writerow(['x', 'y', 'velocity'])  # Simplified format for MPPI
 
         # Write simplified data from global_traj_wpnts_iqp
         for wp in global_traj_wpnts_iqp.wpnts:
