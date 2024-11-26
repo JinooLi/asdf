@@ -76,16 +76,15 @@ def write_global_waypoints(map_name:str,
     # serialize
     with open(path, 'w') as f:
         json.dump(d, f)
-
-    # Save to CSV (using shortest path data)
-    csv_path = os.path.join(base_path, 'global_waypoints_shortest_path.csv')
+    # Save to CSV
+    csv_path = os.path.join(base_path, 'global_waypoints.csv')
     with open(csv_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['opt_x', 'opt_y', 'outer_width', 'inner_width', 'center_x', 'center_y',
                              'outer_x', 'outer_y', 'inner_x', 'inner_y', 'curvature', 'ref_v'])
 
-        # Write data from global_traj_wpnts_sp (shortest path)
-        for wp in global_traj_wpnts_sp.wpnts:
+        # Write data from global_traj_wpnts_iqp
+        for wp in global_traj_wpnts_iqp.wpnts:
             opt_x = wp.x_m
             opt_y = wp.y_m
             outer_width = wp.d_right
