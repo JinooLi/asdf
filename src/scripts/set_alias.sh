@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path="/home/turtleship/turtleship_ws/src/scripts"
+path=$(dirname $BASH_SOURCE)
 
 # launch_base_system <map name>
 alias launch_base_system=". ${path}/base_system.sh"
