@@ -46,7 +46,7 @@ def write_global_waypoints(map_name:str,
     - global_traj_markers_sp
         - from topic /global_waypoints/shortest_path: MarkerArray
     - global_traj_wpnts_sp
-        - from topic /global_waypoitns/shortest_path/markers: WpntArray
+        - from topic /global_waypoints/shortest_path/markers: WpntArray
     - trackbounds_markers
         - from topic /trackbounds/markers: MarkerArray
     '''
@@ -73,10 +73,11 @@ def write_global_waypoints(map_name:str,
     d['global_traj_wpnts_sp'] = message_converter.convert_ros_message_to_dictionary(global_traj_wpnts_sp)
     d['trackbounds_markers'] = message_converter.convert_ros_message_to_dictionary(trackbounds_markers)
 
-    # serialize
+    # Serialize JSON
     with open(path, 'w') as f:
         json.dump(d, f)
-    # Save to CSV
+
+    # Save to detailed CSV
     csv_path = os.path.join(base_path, 'global_waypoints.csv')
     with open(csv_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
@@ -100,7 +101,23 @@ def write_global_waypoints(map_name:str,
 
             csv_writer.writerow([opt_x, opt_y, outer_width, inner_width, center_x, center_y,
                                  outer_x, outer_y, inner_x, inner_y, curvature, ref_v])
-            
+
+    # Save simplified CSV for MPPI with x, y, velocity
+    simplified_csv_path = os.path.join('/home/turtleship/turtleship_ws/outputs', f'{map_name}.csv')
+    os.makedirs(os.path.dirname(simplified_csv_path), exist_ok=True)
+    with open(simplified_csv_path, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['x', 'y', 'velocity'])  # Simplified format for MPPI
+
+        # Write simplified data from global_traj_wpnts_iqp
+        for wp in global_traj_wpnts_iqp.wpnts:
+            x = wp.x_m
+            y = wp.y_m
+            velocity = getattr(wp, 'vx_mps', None)  # Safely access velocity
+            csv_writer.writerow([x, y, velocity])
+
+    print(f"[INFO] WRITE_GLOBAL_WAYPOINTS: Simplified CSV saved to {simplified_csv_path}")
+
 def read_global_waypoints(map_name:str)->Tuple[
     String, Float32, MarkerArray, WpntArray, MarkerArray, WpntArray, MarkerArray, WpntArray, MarkerArray
 ]:
@@ -123,7 +140,7 @@ def read_global_waypoints(map_name:str)->Tuple[
     - global_traj_markers_sp
         - from topic /global_waypoints/shortest_path: MarkerArray
     - global_traj_wpnts_sp
-        - from topic /global_waypoitns/shortest_path/markers: WpntArray
+        - from topic /global_waypoints/shortest_path/markers: WpntArray
     - trackbounds_markers
         - from topic /trackbounds/markers: MarkerArray
     '''
