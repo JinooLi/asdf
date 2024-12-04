@@ -154,6 +154,19 @@ class GlobalPlanner:
             else:
                 self.cent_driven = np.append(self.cent_driven, [self.current_position], axis=0)
 
+    def save_map_pgm_yaml(self):
+            """
+            Use map_saver to save the map as pgm and yaml files in the turtleship_ws/maps directory.
+            """
+            save_dir = '/home/turtleship/turtleship_ws/maps'
+            os.makedirs(save_dir, exist_ok=True)
+            map_file_name = os.path.join(save_dir, self.map_name)
+            try:
+                rospy.loginfo(f"[GB Planner]: Saving map to {map_file_name}.pgm and {map_file_name}.yaml")
+                subprocess.run(['rosrun', 'map_server', 'map_saver', '-f', map_file_name], check=True)
+            except subprocess.CalledProcessError as e:
+                rospy.logerr(f"[GB Planner]: Failed to save map with error: {e}")
+
     def global_plan_loop(self):
         rate_pos = rospy.Rate(self.rate)
 
@@ -198,6 +211,8 @@ class GlobalPlanner:
                         self.just_once = True
                         # Save map png and yaml in map_dir, but it will break before computing the global trajectory
                         self.compute_global_trajectory(cent_length=0.0, save_map=True, save_pf_copy=True)
+                        # Save pgm and yaml files
+                        self.save_map_pgm_yaml()
                         pb_dir = os.path.join(self.map_dir, self.map_name + '.pbstream')
                         rospack = RosPack()
                         script_dir = os.path.join(rospack.get_path('gb_optimizer'), 'scripts/finish_map.sh')
@@ -238,6 +253,8 @@ class GlobalPlanner:
                             self.initial_position = self.current_position  # use position after mapping is done
                             self.just_once = True
                             if self.compute_global_trajectory(cent_length=cent_length, save_map=True, save_pf_copy=True):
+                                # Call the method here
+                                self.save_map_pgm_yaml()
                                 rospy.loginfo('[GB Planner]: Successfully computed waypoints!')
 
                                 rospack = RosPack()
@@ -1278,6 +1295,29 @@ class GlobalPlanner:
 
         return delta_theta < math.pi / 2
 
+    
+    def save_map_pgm_yaml(self):
+        """
+        Save the map in .pgm and .yaml formats using map_server's map_saver.
+        The files will be saved in /home/turtleship/turtleship_ws/maps with the map name.
+        """
+        try:
+            map_save_dir = os.path.join('/home/turtleship/turtleship_ws/maps', self.map_name)
+            os.makedirs(os.path.dirname(map_save_dir), exist_ok=True)
+            rospy.loginfo(f"[GB Planner]: Saving map as pgm and yaml in {map_save_dir}")
+            
+            # Execute map saver to save pgm and yaml
+            subprocess.run([
+                'rosrun', 'map_server', 'map_saver',
+                '-f', map_save_dir,
+                '--occ', '0.65', '--free', '0.196'
+            ], check=True)
+
+            rospy.loginfo(f"[GB Planner]: Map successfully saved as {map_save_dir}.pgm and {map_save_dir}.yaml")
+        except subprocess.CalledProcessError as e:
+            rospy.logerr(f"[GB Planner]: Failed to save map using map_saver: {e}")
+        except Exception as e:
+            rospy.logerr(f"[GB Planner]: Unexpected error while saving map: {e}")
 
 if __name__ == "__main__":
     planner = GlobalPlanner()
