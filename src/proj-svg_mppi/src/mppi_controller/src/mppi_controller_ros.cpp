@@ -162,6 +162,7 @@ MPPIControllerROS::MPPIControllerROS() : nh_(""), private_nh_("~"), tf_listener_
 
     sub_start_cmd_ = nh_.subscribe("mppi/start", 1, &MPPIControllerROS::start_cmd_callback, this);
     sub_stop_cmd_ = nh_.subscribe("mppi/stop", 1, &MPPIControllerROS::stop_cmd_callback, this);
+    sub_collision_weight_toggle_ = nh_.subscribe("/collision_weight_toggle", 1, &MPPIControllerROS::callback_collision_weight_toggle, this);
 
     // For debug
     pub_best_path_ = nh_.advertise<visualization_msgs::MarkerArray>("mppi/best_path", 1, true);
@@ -195,6 +196,16 @@ void MPPIControllerROS::callback_odom_with_pose(const nav_msgs::Odometry& odom) 
     robot_state_.vel = odom.twist.twist.linear.x;
 
     is_robot_state_ok_ = true;
+}
+
+void MPPIControllerROS::callback_collision_weight_toggle(const std_msgs::Bool& msg) {
+    if (mpc_solver_ptr_) {
+        float new_collision_weight = msg.data ? 1.0 : 0.0;
+        mpc_solver_ptr_->set_collision_weight(new_collision_weight);
+        ROS_INFO("[MPPIControllerROS] Collision weight set to: %f", new_collision_weight);
+    } else {
+        ROS_WARN("[MPPIControllerROS] MPC Solver not initialized yet.");
+    }
 }
 
 // Get only current velocity used with localization less model

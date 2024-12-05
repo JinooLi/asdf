@@ -42,6 +42,8 @@ namespace cpu {
 
         void set_reference_map(const grid_map::GridMap& reference_map) override;
 
+        void set_collision_weight(double new_collision_weight) override;
+
         /**
          * @brief get state sequence candidates and their weights, top num_samples
          * @return std::pair<std::vector<StateSeq>, std::vector<double>> state sequence candidates and their weights

@@ -137,6 +137,9 @@ namespace cpu {
 
     void SVGuidedMPPI::set_reference_map(const grid_map::GridMap& reference_map) { mpc_base_ptr_->set_reference_map(reference_map); };
 
+    void SVGuidedMPPI::set_collision_weight(double new_collision_weight){
+        mpc_base_ptr_->set_collision_weight(new_collision_weight);
+    }
     std::pair<std::vector<StateSeq>, std::vector<double>> SVGuidedMPPI::get_state_seq_candidates(const int& num_samples) const {
         return mpc_base_ptr_->get_state_seq_candidates(num_samples, weights_);
     }

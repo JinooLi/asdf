@@ -73,6 +73,7 @@ private:
     ros::Subscriber sub_odom_;            //!< @brief robot odom subscriber
     ros::Subscriber sub_occupancy_grid_;  //!< @brief costmap subscriber (nav_msgs::OccupancyGrid for costmap_2d)
     ros::Subscriber sub_grid_map_;        //!< @brief grid map subscriber (grid_map_msgs::GridMap for local costmap)
+    ros::Subscriber sub_collision_weight_toggle_; //collision weight
     ros::Timer timer_control_;            //!< @brief timer for control command commutation
     ros::Publisher pub_ackermann_cmd_;
     ros::Subscriber sub_activated_;
@@ -141,6 +142,8 @@ private:
     void callback_odom(const nav_msgs::Odometry& odom);
 
     void callback_odom_with_pose(const nav_msgs::Odometry& odom);
+
+    void callback_collision_weight_toggle(const std_msgs::Bool& msg); // 추가됨
 
     void callback_reference_sdf(const grid_map_msgs::GridMap& grid_map);
 

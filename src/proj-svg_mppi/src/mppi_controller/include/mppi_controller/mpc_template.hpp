@@ -21,6 +21,10 @@ namespace cpu {
 
         virtual void set_reference_map(const grid_map::GridMap& reference_map) = 0;
 
+        virtual void set_collision_weight(double new_collision_weight){
+            // nothing~~
+        };
+
         virtual ControlSeq get_control_seq() const = 0;
 
         virtual std::pair<std::vector<StateSeq>, std::vector<double>> get_state_seq_candidates(const int& num_samples) const = 0;

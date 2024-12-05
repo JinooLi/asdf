@@ -56,6 +56,11 @@ namespace cpu {
 
     void MPCBase::set_reference_map(const grid_map::GridMap& reference_map) { reference_map_ = reference_map; }
 
+    void MPCBase::set_collision_weight(double new_collision_weight){ 
+        collision_weight_ = new_collision_weight;
+        std::cout << collision_weight_ << std::endl; 
+    }
+
     std::pair<std::vector<double>, std::vector<double>> MPCBase::calc_sample_costs(const PriorSamplesWithCosts& sampler, const State& init_state) {
         if (is_localize_less_mode_) {
             return calc_sample_costs(sampler, init_state, obstacle_map_, &local_state_seq_candidates_);

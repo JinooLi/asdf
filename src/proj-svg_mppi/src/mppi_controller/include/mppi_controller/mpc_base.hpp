@@ -34,6 +34,8 @@ namespace cpu {
 
         void set_reference_map(const grid_map::GridMap& reference_map);
 
+        void set_collision_weight(double new_collision_weight); // 추가
+
         std::pair<std::vector<double>, std::vector<double>> calc_sample_costs(const PriorSamplesWithCosts& sampler, const State& init_state);
 
         std::tuple<StateSeq, double, double> get_predictive_seq(const State& initial_state, const ControlSeq& control_input_seq) const;
@@ -101,7 +103,7 @@ namespace cpu {
         const double q_dist_;
         const double q_angle_;
         // const double q_speed_;
-        const double collision_weight_;
+        double collision_weight_;
         const double q_terminal_dist_;
         const double q_terminal_angle_;
         // const double q_terminal_speed_;

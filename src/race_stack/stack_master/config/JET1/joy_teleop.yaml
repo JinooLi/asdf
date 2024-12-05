@@ -42,10 +42,20 @@ teleop:
   # And send messages to /dev/null (an unused ROS topic)
   autonomous_control:
     type: topic
-    message_type: std_msgs/Int8
-    topic_name: /dev/null
+    message_type: std_msgs/Bool
+    topic_name: /collision_weight_toggle
     deadman_buttons: [5]
     message_value:
       -
         target: data
-        value: 0
+        value: false
+
+  autonomous_control2:
+    type: topic
+    message_type: std_msgs/Bool
+    topic_name: /collision_weight_toggle
+    deadman_buttons: [1, 5]
+    message_value:
+      -
+        target: data
+        value: true
