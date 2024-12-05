@@ -37,16 +37,46 @@ teleop:
         scale: 0.34                  # joystick will command plus or minus ~20 degrees steering angle
         offset: 0.0
 
+  steer_velo_test:
+    type: topic
+    message_type: ackermann_msgs/AckermannDriveStamped
+    topic_name: low_level/ackermann_cmd_mux/input/teleop
+    deadman_buttons: [2]
+    message_value:
+      -
+        target: drive.steering_angle
+        value: 10
+      -
+        target: drive.speed
+        value: 1
+      - 
+        target: drive.acceleration
+        value: 1
+      - 
+        target: drive.jerk
+        value: 1
+
+
   # Enable autonomous control by pressing right bumper
   # This switch causes the joy_teleop to stop sending messages to input/teleop
   # And send messages to /dev/null (an unused ROS topic)
   autonomous_control:
     type: topic
-    message_type: std_msgs/Int8
-    topic_name: /dev/null
+    message_type: std_msgs/Bool
+    topic_name: /collision_weight_toggle
     deadman_buttons: [5]
     message_value:
       -
         target: data
-        value: 0
+        value: false
+
+  autonomous_control2:
+    type: topic
+    message_type: std_msgs/Bool
+    topic_name: /collision_weight_toggle
+    deadman_buttons: [1, 5]
+    message_value:
+      -
+        target: data
+        value: true
 
