@@ -58,7 +58,6 @@ namespace cpu {
 
     void MPCBase::set_collision_weight(double new_collision_weight){ 
         collision_weight_ = new_collision_weight;
-        std::cout << collision_weight_ << std::endl; 
     }
 
     std::pair<std::vector<double>, std::vector<double>> MPCBase::calc_sample_costs(const PriorSamplesWithCosts& sampler, const State& init_state) {

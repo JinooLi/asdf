@@ -202,7 +202,6 @@ void MPPIControllerROS::callback_collision_weight_toggle(const std_msgs::Bool& m
     if (mpc_solver_ptr_) {
         float new_collision_weight = msg.data ? 1.0 : 0.0;
         mpc_solver_ptr_->set_collision_weight(new_collision_weight);
-        ROS_INFO("[MPPIControllerROS] Collision weight set to: %f", new_collision_weight);
     } else {
         ROS_WARN("[MPPIControllerROS] MPC Solver not initialized yet.");
     }
