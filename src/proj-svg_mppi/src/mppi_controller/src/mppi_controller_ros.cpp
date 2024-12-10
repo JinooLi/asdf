@@ -351,6 +351,13 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
 
     control_msg_.drive.speed = speed_cmd * speed_weight_;
 
+    // 충돌 확률이 1일 때 속도를 0으로 설정
+    if (collision_rate == 1) control_msg_.drive.speed = 0.0;
+    
+    // steering angle에 따른 속도 제한
+    float limit_speed = get_limit_speed_by_steer(steering_angle);
+    if (control_msg_.drive.speed > limit_speed) control_msg_.drive.speed = limit_speed;
+
     pub_ackermann_cmd_.publish(control_msg_);
 
     const double calculation_time = stop_watch_.lap();
@@ -729,6 +736,13 @@ void MPPIControllerROS::publish_state_seq_dists(const mppi::cpu::StateSeq& state
 
 void MPPIControllerROS::update_speed_weight(const double new_speed_weight) {
     speed_weight_ = new_speed_weight;
+}
+
+float MPPIControllerROS::get_limit_speed_by_steer(const float steering_angle) {
+    if (abs(steering_angle) > 0.01)
+        return limit_speed_by_steer_const * (float)sqrt(1 / tan( abs(steering_angle)));
+    else
+        return 10;
 }
 
 }  // namespace mppi

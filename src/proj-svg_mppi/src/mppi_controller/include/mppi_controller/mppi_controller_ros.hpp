@@ -56,6 +56,7 @@ private:
 private:
     // speed weight
     double speed_weight_ = 0.5;
+    float limit_speed_by_steer_const = 1;
 
     std::mutex mtx_;
 
@@ -174,6 +175,8 @@ private:
                                  const ros::Publisher& publisher) const;
     
     void update_speed_weight(const double new_speed_weight);
+
+    float get_limit_speed_by_steer(const float steering_angle);
 };
 
 }  // namespace mppi
