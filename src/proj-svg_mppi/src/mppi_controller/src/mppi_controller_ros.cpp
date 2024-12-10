@@ -739,8 +739,9 @@ void MPPIControllerROS::update_speed_weight(const double new_speed_weight) {
 }
 
 float MPPIControllerROS::get_limit_speed_by_steer(const float steering_angle) {
-    if (abs(steering_angle) > 0.01)
-        return limit_speed_by_steer_const * (float)sqrt(1 / tan( abs(steering_angle)));
+    float abs_steer = abs(steering_angle);  
+    if (abs_steer > 0.01)
+        return limit_speed_by_steer_const * (float)sqrt(1 / tan(abs_steer));
     else
         return 10;
 }
