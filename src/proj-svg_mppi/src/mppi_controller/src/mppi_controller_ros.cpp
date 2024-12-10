@@ -747,7 +747,8 @@ float MPPIControllerROS::get_limited_speed_from_steer(const float steering_angle
     float limit_speed = Maximum_speed_;
     if (abs_steer > 0.01)
         limit_speed = limit_speed_steer_const_ * (float)sqrt(tan(PI / 2 - abs_steer));
-    
+    if (limit_speed > Maximum_speed_)
+        limit_speed = Maximum_speed_;
     return (speed > limit_speed)? limit_speed : speed;
 }
 
