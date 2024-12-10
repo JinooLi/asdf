@@ -55,7 +55,7 @@ private:
 
 private:
     // speed weight
-    const double SPEED_WEIGHT = 0.5;
+    double speed_weight_ = 0.5;
 
     std::mutex mtx_;
 
@@ -172,6 +172,8 @@ private:
     void publish_state_seq_dists(const mppi::cpu::StateSeq& state_seq,
                                  const mppi::cpu::XYCovMatrices& cov_matrices,
                                  const ros::Publisher& publisher) const;
+    
+    void update_speed_weight(const double new_speed_weight);
 };
 
 }  // namespace mppi

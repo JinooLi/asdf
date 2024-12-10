@@ -349,15 +349,7 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
         }
     }
 
-    // // velocity scaling
-    // double speed_weight = 0.0;
-    // if (collision_rate >= 0.8) {
-    //     speed_weight = 0.4;
-    // } else if (collision_rate < 0.8 && collision_rate >= 0.3) {
-    //     speed_weight = 0.6;
-    // }
-
-    control_msg_.drive.speed = speed_cmd * SPEED_WEIGHT;
+    control_msg_.drive.speed = speed_cmd * speed_weight_;
 
     pub_ackermann_cmd_.publish(control_msg_);
 
@@ -733,6 +725,10 @@ void MPPIControllerROS::publish_state_seq_dists(const mppi::cpu::StateSeq& state
         marker_array.markers.push_back(ellipse);
     }
     publisher.publish(marker_array);
+}
+
+void MPPIControllerROS::update_speed_weight(const double new_speed_weight) {
+    speed_weight_ = new_speed_weight;
 }
 
 }  // namespace mppi
