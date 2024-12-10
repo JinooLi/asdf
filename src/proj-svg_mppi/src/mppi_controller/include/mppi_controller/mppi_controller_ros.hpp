@@ -56,7 +56,7 @@ private:
 private:
     // speed weight
     double speed_weight_ = 0.5;
-    float limit_speed_by_steer_const = 1;
+    const float limit_speed_by_steer_const_ = 1;
 
     std::mutex mtx_;
 
