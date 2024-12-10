@@ -353,10 +353,14 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
 
     // 충돌 확률이 1일 때 속도를 0으로 설정
     if (collision_rate == 1) control_msg_.drive.speed = 0.0;
+
+    // 최대 조향각 제한
+    if (abs(control_msg_.drive.steering_angle) > Maximum_steer_) {
+        control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
+    }
     
     // steering angle에 따른 속도 제한
-    float limit_speed = get_limit_speed_from_steer(control_msg_.drive.steering_angle);
-    if (control_msg_.drive.speed > limit_speed) control_msg_.drive.speed = limit_speed;
+    control_msg_.drive.speed = get_limited_speed_from_steer(control_msg_.drive.steering_angle, control_msg_.drive.speed);
 
     pub_ackermann_cmd_.publish(control_msg_);
 
@@ -738,12 +742,13 @@ void MPPIControllerROS::update_speed_weight(const double new_speed_weight) {
     speed_weight_ = new_speed_weight;
 }
 
-float MPPIControllerROS::get_limit_speed_from_steer(const float steering_angle) {
+float MPPIControllerROS::get_limited_speed_from_steer(const float steering_angle, const float speed) {
     float abs_steer = abs(steering_angle); 
-    float limit_speed = 10;
+    float limit_speed = Maximum_speed_;
     if (abs_steer > 0.01)
-        limit_speed = limit_speed_steer_const_ * (float)sqrt(1 / tan(abs_steer));
-    return limit_speed;
+        limit_speed = limit_speed_steer_const_ * (float)sqrt(tan(PI / 2 - abs_steer));
+    
+    return (speed > limit_speed)? limit_speed : speed;
 }
 
 }  // namespace mppi

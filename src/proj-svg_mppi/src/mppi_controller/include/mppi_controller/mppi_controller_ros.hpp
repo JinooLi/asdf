@@ -38,6 +38,8 @@
 #include "mppi_controller/stein_variational_guided_mppi.hpp"
 #include "mppi_controller/stein_variational_mpc.hpp"
 
+#define PI 3.14159265358979323846
+
 namespace mppi {
 class MPPIControllerROS {
 public:
@@ -56,7 +58,9 @@ private:
 private:
     // speed weight
     double speed_weight_ = 0.5;
-    const float limit_speed_steer_const_ = 1;
+    const float limit_speed_steer_const_ = 1; // 실험을 통해 알아내야한다.
+    const float Maximum_speed_ = 10; // 최대 속도 m/s
+    const float Maximum_steer_ = 0.4; // 최대 조향각 rad
 
     std::mutex mtx_;
 
@@ -176,7 +180,7 @@ private:
     
     void update_speed_weight(const double new_speed_weight);
 
-    float get_limit_speed_from_steer(const float steering_angle);
+    float get_limited_speed_from_steer(const float steering_angle, const float speed);
 };
 
 }  // namespace mppi
