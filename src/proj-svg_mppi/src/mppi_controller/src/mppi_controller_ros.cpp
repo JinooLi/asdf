@@ -351,16 +351,41 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
 
     control_msg_.drive.speed = speed_cmd * speed_weight_;
 
-    // 충돌 확률이 1일 때 속도를 0으로 설정
-    if (collision_rate == 1) control_msg_.drive.speed = 0.0;
-
     // 최대 조향각 제한
-    if (abs(control_msg_.drive.steering_angle) > Maximum_steer_) {
-        control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
-    }
-    
+    // if (abs(control_msg_.drive.steering_angle) > Maximum_steer_) {
+    //     control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
+    // }
+
     // steering angle에 따른 속도 제한
     control_msg_.drive.speed = get_limited_speed_from_steer(control_msg_.drive.steering_angle, control_msg_.drive.speed);
+
+    // 가속도에 따른 속도 제한
+    // 이전 제어 시각과 현재 제어 시각의 차를 구한다.
+    std::chrono::system_clock::time_point cur_time = std::chrono::system_clock::now();
+
+    // 시간으로 새로 제시된 속도와 이전 속도의 차를 나누어 가속도를 구하고
+    // 최대 감가속도를 넘으면 제한한다.
+    std::chrono::nanoseconds dt_n = cur_time - pre_time_;
+    double dt = dt_n.count() * 1.0E-9;            // s
+    float dv = control_msg_.drive.speed - pre_speed_;  // m/s
+    float a = dv / dt;
+    // ROS_INFO("accc: %f", a);
+    if (a >= 0) {
+        if (a > Maximum_accel) {
+            control_msg_.drive.speed = pre_speed_ + Maximum_accel * dt;
+        }
+    } else {
+        if (-a > Maximum_accel) {
+            control_msg_.drive.speed = pre_speed_ - Maximum_accel * dt;
+        }
+    }
+
+    // 충돌 확률이 1일 때 속도를 0으로 설정
+    if (collision_rate == 1)
+        control_msg_.drive.speed = 0.0;
+
+    pre_speed_ = control_msg_.drive.speed;
+    pre_time_ = cur_time;
 
     pub_ackermann_cmd_.publish(control_msg_);
 
@@ -743,13 +768,47 @@ void MPPIControllerROS::update_speed_weight(const double new_speed_weight) {
 }
 
 float MPPIControllerROS::get_limited_speed_from_steer(const float steering_angle, const float speed) {
-    float abs_steer = abs(steering_angle); 
-    float limit_speed = Maximum_speed_;
-    if (abs_steer > 0.01)
+    float abs_steer = abs(steering_angle);
+    float limit_speed = 0.0;
+    if (abs_steer > steer_threshold_)
         limit_speed = limit_speed_steer_const_ * (float)sqrt(tan(PI / 2 - abs_steer));
-    if (limit_speed > Maximum_speed_)
-        limit_speed = Maximum_speed_;
-    return (speed > limit_speed)? limit_speed : speed;
+    else
+        limit_speed = Maximum_speed_ - Maximum_accel_ * abs_steer / Maximum_steer_speed_;
+    return (speed > limit_speed) ? limit_speed : speed;
+}
+
+// Function to solve csc^2(x)/2sqrt(cot(x)) = y using Newton-Raphson
+double MPPIControllerROS::get_steer_threshold(double y, double tolerance) {
+    // Initial guess for t
+    double t = 1.4; // this must be bigger than sqrt(cot(pi/3))=1.3160740130
+    int iter = 0;
+    const int MAX_ITER = 1000;
+
+    while (iter < MAX_ITER) {
+        // Function value and its derivative
+        double f = std::pow(t, 4) + 1 - 2 * y * t;
+        double f_d = 4 * std::pow(t, 3) - 2 * y;
+
+        // Avoid division by zero
+        if (std::abs(f_d) < tolerance) {
+            std::cerr << "Derivative too small, stopping iteration.\n";
+            break;
+        }
+
+        // Newton-Raphson update
+        double t_next = t - f / f_d;
+
+        // Check for convergence
+        if (std::abs(t_next - t) < tolerance) {
+            return atan(1 / (t_next * t_next));
+        }
+
+        t = t_next;
+        ++iter;
+    }
+
+    std::cerr << "Newton-Raphson did not converge.\n";
+    return NAN;
 }
 
 }  // namespace mppi

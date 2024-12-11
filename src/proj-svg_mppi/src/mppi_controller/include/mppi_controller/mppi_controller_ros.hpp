@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <deque>
 #include <iostream>
 #include <limits>
@@ -57,10 +58,29 @@ private:
 
 private:
     // speed weight
-    double speed_weight_ = 0.5;
-    const float limit_speed_steer_const_ = 1; // 실험을 통해 알아내야한다.
-    const float Maximum_speed_ = 10; // 최대 속도 m/s
-    const float Maximum_steer_ = 0.4; // 최대 조향각 rad
+    double speed_weight_ = 1;
+
+    // 실험을 통해 알아내야한다.
+    // 어떻게 알아내는가??
+    // 우선 steering 각도를 고정한 상태에서 원운동을 시킨다.
+    // 원의 크기가 커지지 않는 최대의 속도를 알아낸다.
+    // max_speed = c * sqrt(1/tan(steering_angle))를 만족시키는 c를 찾고,
+    // 그 c를 적용한다.
+    const float limit_speed_steer_const_ = 0.95;
+    const float wheelbase_ = 0.325;    // 차량 축간 거리 m
+    const float Maximum_steer_ = 0.4;  // 최대 조향각 rad
+    const float Maximum_steer_speed_ = 0.32;  // 최대 조향 속도 rad/s
+    
+    // 최대 가속도 계산
+    const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;   // 최대 가속도 m/s^2
+    
+    const double steer_threshold_ = get_steer_threshold(Maximum_accel_ / (limit_speed_steer_const_ * Maximum_steer_speed_), 1e-6);
+
+    const float Maximum_speed_ = steer_threshold_ * Maximum_accel_ / Maximum_steer_speed_
+                                + limit_speed_steer_const_ * sqrt(tan(PI / 2 - steer_threshold_));
+
+    std::chrono::system_clock::time_point pre_time_ = std::chrono::system_clock::now();  // 이전 시각 ns(10^-9s)
+    float pre_speed_ = 0;                                                                // 이전 속도 m/s
 
     std::mutex mtx_;
 
@@ -74,12 +94,12 @@ private:
     tf2_ros::TransformListener tf_listener_;
 
     /* pub sub */
-    ros::Subscriber sub_reference_sdf_;   //!< @brief reference sdf subscriber
-    ros::Subscriber sub_odom_;            //!< @brief robot odom subscriber
-    ros::Subscriber sub_occupancy_grid_;  //!< @brief costmap subscriber (nav_msgs::OccupancyGrid for costmap_2d)
-    ros::Subscriber sub_grid_map_;        //!< @brief grid map subscriber (grid_map_msgs::GridMap for local costmap)
-    ros::Subscriber sub_collision_weight_toggle_; //collision weight
-    ros::Timer timer_control_;            //!< @brief timer for control command commutation
+    ros::Subscriber sub_reference_sdf_;            //!< @brief reference sdf subscriber
+    ros::Subscriber sub_odom_;                     //!< @brief robot odom subscriber
+    ros::Subscriber sub_occupancy_grid_;           //!< @brief costmap subscriber (nav_msgs::OccupancyGrid for costmap_2d)
+    ros::Subscriber sub_grid_map_;                 //!< @brief grid map subscriber (grid_map_msgs::GridMap for local costmap)
+    ros::Subscriber sub_collision_weight_toggle_;  // collision weight
+    ros::Timer timer_control_;                     //!< @brief timer for control command commutation
     ros::Publisher pub_ackermann_cmd_;
     ros::Subscriber sub_activated_;
     ros::Subscriber sub_backward_point_;
@@ -148,7 +168,7 @@ private:
 
     void callback_odom_with_pose(const nav_msgs::Odometry& odom);
 
-    void callback_collision_weight_toggle(const std_msgs::Bool& msg); // 추가됨
+    void callback_collision_weight_toggle(const std_msgs::Bool& msg);  // 추가됨
 
     void callback_reference_sdf(const grid_map_msgs::GridMap& grid_map);
 
@@ -177,10 +197,12 @@ private:
     void publish_state_seq_dists(const mppi::cpu::StateSeq& state_seq,
                                  const mppi::cpu::XYCovMatrices& cov_matrices,
                                  const ros::Publisher& publisher) const;
-    
+
     void update_speed_weight(const double new_speed_weight);
 
     float get_limited_speed_from_steer(const float steering_angle, const float speed);
+
+    double get_steer_threshold(double y, double tolerance);
 };
 
 }  // namespace mppi
