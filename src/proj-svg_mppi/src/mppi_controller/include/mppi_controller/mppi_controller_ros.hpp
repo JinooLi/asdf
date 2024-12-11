@@ -66,18 +66,18 @@ private:
     // 원의 크기가 커지지 않는 최대의 속도를 알아낸다.
     // max_speed = c * sqrt(1/tan(steering_angle))를 만족시키는 c를 찾고,
     // 그 c를 적용한다.
-    const float limit_speed_steer_const_ = 0.95;
-    const float wheelbase_ = 0.325;    // 차량 축간 거리 m
-    const float Maximum_steer_ = 0.4;  // 최대 조향각 rad
+    const float limit_speed_steer_const_ = 1.65 * sqrt(tan(0.3));
+    const float wheelbase_ = 0.325;           // 차량 축간 거리 m
+    const float Maximum_steer_ = 0.4;         // 최대 조향각 rad
     const float Maximum_steer_speed_ = 0.32;  // 최대 조향 속도 rad/s
-    
+
     // 최대 가속도 계산
-    const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;   // 최대 가속도 m/s^2
-    
+    const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;  // 최대 가속도 m/s^2
+
     const double steer_threshold_ = get_steer_threshold(Maximum_accel_ / (limit_speed_steer_const_ * Maximum_steer_speed_), 1e-6);
 
-    const float Maximum_speed_ = steer_threshold_ * Maximum_accel_ / Maximum_steer_speed_
-                                + limit_speed_steer_const_ * sqrt(tan(PI / 2 - steer_threshold_));
+    const float Maximum_speed_ =
+        steer_threshold_ * Maximum_accel_ / Maximum_steer_speed_ + limit_speed_steer_const_ * sqrt(tan(PI / 2 - steer_threshold_));
 
     std::chrono::system_clock::time_point pre_time_ = std::chrono::system_clock::now();  // 이전 시각 ns(10^-9s)
     float pre_speed_ = 0;                                                                // 이전 속도 m/s

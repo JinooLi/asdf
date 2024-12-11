@@ -175,6 +175,10 @@ MPPIControllerROS::MPPIControllerROS() : nh_(""), private_nh_("~"), tf_listener_
     pub_collision_rate_ = nh_.advertise<std_msgs::Float32>("mppi/collision_rate", 1, true);
     pub_cost_ = nh_.advertise<std_msgs::Float32>("mppi/cost", 1, true);
     pub_mppi_metrics_ = nh_.advertise<mppi_metrics_msgs::MPPIMetrics>("mppi/eval_metrics", 1, true);
+    ROS_INFO("lim_speed_steer_const: %f", limit_speed_steer_const_);
+    ROS_INFO("max_speed: %f", Maximum_speed_);
+    ROS_INFO("max_accel: %f", Maximum_accel_);
+    ROS_INFO("steer_thr: %lf", steer_threshold_);
 }
 
 // Get current pose and velocity used with localization model
@@ -356,7 +360,7 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     //     control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
     // }
 
-    // steering angle에 따른 속도 제한 
+    // steering angle에 따른 속도 제한
     control_msg_.drive.speed = get_limited_speed_from_steer(control_msg_.drive.steering_angle, control_msg_.drive.speed);
 
     // 가속도에 따른 속도 제한
@@ -366,17 +370,17 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     // 시간으로 새로 제시된 속도와 이전 속도의 차를 나누어 가속도를 구하고
     // 최대 감가속도를 넘으면 제한한다.
     std::chrono::nanoseconds dt_n = cur_time - pre_time_;
-    double dt = dt_n.count() * 1.0E-9;            // s
+    double dt = dt_n.count() * 1.0E-9;                 // s
     float dv = control_msg_.drive.speed - pre_speed_;  // m/s
     float a = dv / dt;
     // ROS_INFO("accc: %f", a);
 
     // 가속도 제한
     if (abs(a) > Maximum_accel_)
-        control_msg_.drive.speed = pre_speed_ + ((a>0)?1:-1) * Maximum_accel_ * dt;
+        control_msg_.drive.speed = pre_speed_ + ((a > 0) ? 1 : -1) * Maximum_accel_ * dt;
 
     // 충돌 확률이 1일 때 속도를 0으로 설정
-    if (collision_rate == 1)
+    if (collision_rate >= 0.98)
         control_msg_.drive.speed = 0.0;
 
     pre_speed_ = control_msg_.drive.speed;
@@ -775,7 +779,7 @@ float MPPIControllerROS::get_limited_speed_from_steer(const float steering_angle
 // Function to solve csc^2(x)/2sqrt(cot(x)) = y using Newton-Raphson
 double MPPIControllerROS::get_steer_threshold(double y, double tolerance) {
     // Initial guess for t
-    double t = 1.4; // this must be bigger than sqrt(cot(pi/3))=1.3160740130
+    double t = 10;  // this must be bigger than sqrt(cot(pi/3))=1.3160740130
     int iter = 0;
     const int MAX_ITER = 1000;
 
