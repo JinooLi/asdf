@@ -45,16 +45,10 @@ teleop:
     message_value:
       -
         target: drive.steering_angle
-        value: 10
+        value: 0.3
       -
         target: drive.speed
-        value: 1
-      - 
-        target: drive.acceleration
-        value: 1
-      - 
-        target: drive.jerk
-        value: 1
+        value: 1.65
 
 
   # Enable autonomous control by pressing right bumper
