@@ -356,7 +356,7 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     //     control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
     // }
 
-    // steering angle에 따른 속도 제한
+    // steering angle에 따른 속도 제한 
     control_msg_.drive.speed = get_limited_speed_from_steer(control_msg_.drive.steering_angle, control_msg_.drive.speed);
 
     // 가속도에 따른 속도 제한
@@ -370,15 +370,10 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     float dv = control_msg_.drive.speed - pre_speed_;  // m/s
     float a = dv / dt;
     // ROS_INFO("accc: %f", a);
-    if (a >= 0) {
-        if (a > Maximum_accel) {
-            control_msg_.drive.speed = pre_speed_ + Maximum_accel * dt;
-        }
-    } else {
-        if (-a > Maximum_accel) {
-            control_msg_.drive.speed = pre_speed_ - Maximum_accel * dt;
-        }
-    }
+
+    // 가속도 제한
+    if (abs(a) > Maximum_accel_)
+        control_msg_.drive.speed = pre_speed_ + ((a>0)?1:-1) * Maximum_accel_ * dt;
 
     // 충돌 확률이 1일 때 속도를 0으로 설정
     if (collision_rate == 1)
