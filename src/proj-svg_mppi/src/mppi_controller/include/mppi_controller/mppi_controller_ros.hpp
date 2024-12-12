@@ -68,8 +68,8 @@ private:
     // 그 c를 적용한다.
     const float limit_speed_steer_const_ = 1.65 * sqrt(tan(0.3));
     const float wheelbase_ = 0.325;           // 차량 축간 거리 m
-    const float Maximum_steer_ = 0.4;         // 최대 조향각 rad
-    const float Maximum_steer_speed_ = 0.32;  // 최대 조향 속도 rad/s
+    const float Maximum_steer_ = 0.4195;      // 최대 조향각 rad
+    const float Maximum_steer_speed_ = 3.2;   // 최대 조향 속도 rad/s
 
     // 최대 가속도 계산
     const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;  // 최대 가속도 m/s^2

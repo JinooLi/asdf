@@ -799,7 +799,11 @@ double MPPIControllerROS::get_steer_threshold(double y, double tolerance) {
 
         // Check for convergence
         if (std::abs(t_next - t) < tolerance) {
-            return atan(1 / (t_next * t_next));
+            double steer_threshold = atan(1 / (t_next * t_next));
+            if (steer_threshold > Maximum_steer_) {
+                steer_threshold = Maximum_steer_;
+            }
+            return steer_threshold;
         }
 
         t = t_next;
