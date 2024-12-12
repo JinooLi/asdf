@@ -69,7 +69,7 @@ private:
     const float limit_speed_steer_const_ = 1.65 * sqrt(tan(0.3));
     const float wheelbase_ = 0.325;           // 차량 축간 거리 m
     const float Maximum_steer_ = 0.4195;      // 최대 조향각 rad
-    const float Maximum_steer_speed_ = 3.2;   // 최대 조향 속도 rad/s
+    const float Maximum_steer_speed_ = 3.2;   // 최대 조향 속도 rad/s (3.2 rad/s 이하로 제한 가능)
 
     // 최대 가속도 계산
     const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;  // 최대 가속도 m/s^2
@@ -80,7 +80,9 @@ private:
         steer_threshold_ * Maximum_accel_ / Maximum_steer_speed_ + limit_speed_steer_const_ * sqrt(tan(PI / 2 - steer_threshold_));
 
     std::chrono::system_clock::time_point pre_time_ = std::chrono::system_clock::now();  // 이전 시각 ns(10^-9s)
-    float pre_speed_ = 0;                                                                // 이전 속도 m/s
+    float pre_speed_ = 0;  
+    
+    float pre_steer_ = 0;                                                              // 이전 속도 m/s
 
     std::mutex mtx_;
 
