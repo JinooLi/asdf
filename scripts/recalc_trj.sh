@@ -7,5 +7,5 @@ else
     map_name=$1
 fi
 
-echo "MAP_NAME: $map_name"
+echo "map_name: $map_name"
 roslaunch map_editor map_editor.launch map_name:=$map_name map_editor_mapping:=false

@@ -7,6 +7,8 @@ else
     map_name=$1
 fi
 
+echo "map_name: $map_name"
+
 roslaunch stack_master mapping.launch map_name:=$map_name racecar_version:=NUC2
 
 set_map_name $map_name
