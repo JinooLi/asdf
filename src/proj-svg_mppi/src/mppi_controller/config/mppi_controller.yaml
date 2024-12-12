@@ -21,7 +21,7 @@ constant_speed_mode: false
 # if true, the speed is fixed to reference_speed. Otherwise, the reference speed is determined by the waypoints.
 # NOTE: If you set localize_less_mode to true, force the constant_speed_mode to true.
 reference_speed: 3.0
-collision_rate_threshold: 1.1 # [0, 1] If the collision rate is larger than this value, robot speed cmd is set to 0.
+collision_rate_threshold: 1 # [0, 1] If the collision rate is larger than this value, robot speed cmd is set to 0.
 # stuck detection params
 # This is currently only used in localize_less_mode.
 speed_deque_size: 10
@@ -34,8 +34,8 @@ common:
   prediction_step_size: 17 # default: 15
   prediction_interval: 0.045 # 0.05
   steer_delay: 0.01 # [s] dead time. If set enough large value, the prediction is similar to DWA planner.
-  max_steer_angle: 0.45
-  min_steer_angle: -0.45
+  max_steer_angle: 0.412
+  min_steer_angle: -0.412
   speed_prediction_mode: reference # linear or constant or reference
   max_accel: 5.0
   min_accel: -3.0
