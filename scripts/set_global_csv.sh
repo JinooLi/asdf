@@ -17,10 +17,8 @@ cp $workspace_path/src/race_stack/stack_master/maps/$MAP_NAME/global_waypoints.c
     $workspace_path/src/proj-svg_mppi/src/reference_waypoint_loader/data && \
 # 이동
 cd $workspace_path/src/proj-svg_mppi/src/reference_waypoint_loader/data && \
-# 기존 reference_waypoints.csv 삭제
-rm reference_waypoints.csv && \
 # 파일 이름 변경
-mv global_waypoints.csv reference_waypoints.csv && \
-echo "global_waypoints.csv is set"
+mv global_waypoints.csv reference_waypoint.csv && \
+echo "global_waypoint.csv is set to reference_waypoint.csv"
 
 cd $current_path
