@@ -64,7 +64,7 @@ private:
     // 어떻게 알아내는가??
     // 우선 steering 각도를 고정한 상태에서 원운동을 시킨다.
     // 원의 크기가 커지지 않는 최대의 속도를 알아낸다.
-    // max_speed = c * sqrt(1/tan(steering_angle))를 만족시키는 c를 찾고,
+    // c = max_speed * sqrt(tan(steering_angle))를 만족시키는 c를 찾고,
     // 그 c를 적용한다.
     const float limit_speed_steer_const_ = 1.65 * sqrt(tan(0.3));
     const float wheelbase_ = 0.325;           // 차량 축간 거리 m
