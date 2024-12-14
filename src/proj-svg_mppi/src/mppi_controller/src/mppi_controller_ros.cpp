@@ -373,17 +373,11 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     double dt = dt_n.count() * 1.0E-9;                 // s
     float dv = control_msg_.drive.speed - pre_speed_;  // m/s
     float a = dv / dt;
-    float d_steer = control_msg_.drive.steering_angle - pre_steer_;
-    float av_steer = d_steer / dt;
 
     // 가속도 제한
     if (abs(a) > Maximum_accel_)
         control_msg_.drive.speed = pre_speed_ + ((a > 0) ? 1 : -1) * Maximum_accel_ * dt;
 
-    // steering 각속도 제한
-    if (abs(av_steer) > Maximum_steer_speed_)
-        control_msg_.drive.steering_angle = pre_steer_ + ((av_steer > 0) ? 1 : -1) * Maximum_steer_speed_ * dt;
-    
     // 충돌 확률이 1일 때 속도를 0으로 설정
     if (collision_rate >= 0.98)
         control_msg_.drive.speed = 0.0;
@@ -391,7 +385,6 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     // 이전 속도와 조향각을 업데이트
     pre_speed_ = control_msg_.drive.speed;
     pre_time_ = cur_time;
-    pre_steer_ = control_msg_.drive.steering_angle;
 
     pub_ackermann_cmd_.publish(control_msg_);
 
