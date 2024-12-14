@@ -19,3 +19,6 @@ alias set_global_csv=". ${path}/set_global_csv.sh"
 
 # usage: set_map_name <map name>
 alias set_map_name=". ${path}/set_map_name.sh"
+
+# usage: map_list
+alias map_list=". ${path}/map_list.sh"
