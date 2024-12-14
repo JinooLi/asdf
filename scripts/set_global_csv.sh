@@ -3,7 +3,7 @@
 # MAP_NAME 변수가 설정되어 있지 않으면 종료
 if [ -z "$MAP_NAME" ]; then
     echo "MAP_NAME is not set"
-    exit 1
+    exit 0
 fi
 
 echo "MAP_NAME: $MAP_NAME"
