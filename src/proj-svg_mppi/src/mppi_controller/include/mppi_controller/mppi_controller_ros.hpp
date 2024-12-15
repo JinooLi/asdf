@@ -58,7 +58,7 @@ private:
 
 private:
     // speed weight
-    double speed_weight_ = 1.0;
+    double speed_weight_ = 1;
 
     // 실험을 통해 알아내야한다.
     // 어떻게 알아내는가??
@@ -67,14 +67,16 @@ private:
     // c = max_speed * sqrt(tan(steering_angle))를 만족시키는 c를 찾고,
     // 그 c를 적용한다.
     const float limit_speed_steer_const_ = 1.65 * sqrt(tan(0.3));
-    const float wheelbase_ = 0.325;          // 차량 축간 거리 m
-    const float Maximum_steer_ = 0.4195;     // 최대 조향각 rad
-    const float Maximum_steer_speed_ = 0.3;  // 최대 조향 속도 rad/s (3.2 rad/s 이하로 제한 가능)
+    const float wheelbase_ = 0.325;           // 차량 축간 거리 m
+    const float Maximum_steer_ = 0.4195;      // 최대 조향각 rad
+    const float Maximum_steer_speed_ = 0.32;  // 최대 조향 속도 rad/s (3.2 rad/s 이하로 제한 가능)
 
     // 최대 가속도 계산
     const float Maximum_accel_ = limit_speed_steer_const_ * limit_speed_steer_const_ / wheelbase_;  // 최대 가속도 m/s^2
 
     const double steer_threshold_ = get_steer_threshold(Maximum_accel_ / (limit_speed_steer_const_ * Maximum_steer_speed_), 1e-6);
+
+    bool zero_speed_flag_ = true;
 
     const float Maximum_speed_ =
         steer_threshold_ * Maximum_accel_ / Maximum_steer_speed_ + limit_speed_steer_const_ * sqrt(tan(PI / 2 - steer_threshold_));
@@ -103,6 +105,9 @@ private:
     ros::Publisher pub_ackermann_cmd_;
     ros::Subscriber sub_activated_;
     ros::Subscriber sub_backward_point_;
+    ros::Subscriber sub_speed_weight_toggle_;
+    ros::Subscriber sub_reset_weights_;
+    ros::Subscriber sub_set_speed_zero_;
 
     ros::Subscriber sub_start_cmd_;
     ros::Subscriber sub_stop_cmd_;
@@ -169,6 +174,12 @@ private:
     void callback_odom_with_pose(const nav_msgs::Odometry& odom);
 
     void callback_collision_weight_toggle(const std_msgs::Bool& msg);  // 추가됨
+
+    void callback_speed_weight_toggle(const std_msgs::Bool& msg);  // 추가됨
+
+    void callback_reset_weights(const std_msgs::Bool& msg);  // 추가됨
+
+    void callback_set_speed_zero(const std_msgs::Bool& msg);  // 추가됨
 
     void callback_reference_sdf(const grid_map_msgs::GridMap& grid_map);
 

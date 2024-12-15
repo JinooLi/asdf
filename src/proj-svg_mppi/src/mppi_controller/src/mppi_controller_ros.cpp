@@ -163,6 +163,9 @@ MPPIControllerROS::MPPIControllerROS() : nh_(""), private_nh_("~"), tf_listener_
     sub_start_cmd_ = nh_.subscribe("mppi/start", 1, &MPPIControllerROS::start_cmd_callback, this);
     sub_stop_cmd_ = nh_.subscribe("mppi/stop", 1, &MPPIControllerROS::stop_cmd_callback, this);
     sub_collision_weight_toggle_ = nh_.subscribe("/collision_weight_toggle", 1, &MPPIControllerROS::callback_collision_weight_toggle, this);
+    sub_speed_weight_toggle_ = nh_.subscribe("/speed_weight_toggle", 1, &MPPIControllerROS::callback_speed_weight_toggle, this);
+    sub_reset_weights_ = nh_.subscribe("/reset_weights", 1, &MPPIControllerROS::callback_reset_weights, this);
+    sub_set_speed_zero_ = nh_.subscribe("/set_speed_zero", 1, &MPPIControllerROS::callback_set_speed_zero, this);
 
     // For debug
     pub_best_path_ = nh_.advertise<visualization_msgs::MarkerArray>("mppi/best_path", 1, true);
@@ -204,11 +207,30 @@ void MPPIControllerROS::callback_odom_with_pose(const nav_msgs::Odometry& odom) 
 
 void MPPIControllerROS::callback_collision_weight_toggle(const std_msgs::Bool& msg) {
     if (mpc_solver_ptr_) {
-        float new_collision_weight = msg.data ? 0.0 : 1.0;
-        mpc_solver_ptr_->set_collision_weight(new_collision_weight);
+        mpc_solver_ptr_->set_collision_weight(0.0);
     } else {
         ROS_WARN("[MPPIControllerROS] MPC Solver not initialized yet.");
     }
+    ROS_INFO("[MPPIControllerROS] Collision weight toggle: %d", msg.data);
+}
+
+void MPPIControllerROS::callback_speed_weight_toggle(const std_msgs::Bool& msg) {
+    if (msg.data)
+        speed_weight_ = 0.3;
+    ROS_INFO("[MPPIControllerROS] Speed weight toggle: %d", msg.data);
+}
+
+void MPPIControllerROS::callback_reset_weights(const std_msgs::Bool& msg) {
+    if (msg.data) {
+        speed_weight_ = 1.0;
+        mpc_solver_ptr_->set_collision_weight(1.0);
+        zero_speed_flag_ = false;
+    }
+    ROS_INFO("[MPPIControllerROS] Reset weights: %d", msg.data);
+}
+
+void MPPIControllerROS::callback_set_speed_zero(const std_msgs::Bool& msg) {
+    zero_speed_flag_ = true;
 }
 
 // Get only current velocity used with localization less model
@@ -355,6 +377,8 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
 
     control_msg_.drive.speed = speed_cmd * speed_weight_;
 
+    // ----------
+
     // 최대 조향각 제한
     // if (abs(control_msg_.drive.steering_angle) > Maximum_steer_) {
     //     control_msg_.drive.steering_angle = (control_msg_.drive.steering_angle > 0) ? Maximum_steer_ : -Maximum_steer_;
@@ -382,9 +406,14 @@ void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& t
     if (collision_rate >= 0.98)
         control_msg_.drive.speed = 0.0;
 
+    if (zero_speed_flag_)
+        control_msg_.drive.speed = 0.0;
+
     // 이전 속도와 조향각을 업데이트
     pre_speed_ = control_msg_.drive.speed;
     pre_time_ = cur_time;
+
+    // ----------
 
     pub_ackermann_cmd_.publish(control_msg_);
 
